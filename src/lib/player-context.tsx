@@ -270,11 +270,61 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const current = tracks[currentIndex];
 
+  // Stable refs so handlers always call the latest functions without
+  // re-registering (re-registration causes a brief gap iOS doesn't like).
+  const nextRef = useRef(next);
+  const prevRef = useRef(prev);
+  const setIsPlayingRef = useRef(setIsPlaying);
+  useEffect(() => {
+    nextRef.current = next;
+    prevRef.current = prev;
+    setIsPlayingRef.current = setIsPlaying;
+  });
+
+  // Register the action handlers ONCE on mount. They never need to be
+  // re-registered because they call ref.current which always holds the
+  // latest function.
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
       return;
     }
     const ms = navigator.mediaSession;
+    try {
+      ms.setActionHandler("play", () => setIsPlayingRef.current(true));
+      ms.setActionHandler("pause", () => setIsPlayingRef.current(false));
+      ms.setActionHandler("nexttrack", () => nextRef.current());
+      ms.setActionHandler("previoustrack", () => prevRef.current());
+      ms.setActionHandler("seekto", (details) => {
+        if (details.seekTime != null) {
+          howlRef.current?.seek(details.seekTime);
+        }
+      });
+      ms.setActionHandler("seekbackward", (details) => {
+        const h = howlRef.current;
+        if (!h) return;
+        const cur = h.seek();
+        const pos = typeof cur === "number" ? cur : 0;
+        h.seek(Math.max(0, pos - (details.seekOffset ?? 10)));
+      });
+      ms.setActionHandler("seekforward", (details) => {
+        const h = howlRef.current;
+        if (!h) return;
+        const cur = h.seek();
+        const pos = typeof cur === "number" ? cur : 0;
+        const dur = h.duration() || 0;
+        h.seek(Math.min(dur - 0.1, pos + (details.seekOffset ?? 10)));
+      });
+    } catch {
+      /* unsupported action — ignore */
+    }
+  }, []);
+
+  // Update metadata when the track changes.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
+      return;
+    }
+    if (typeof MediaMetadata === "undefined") return;
 
     const artwork: MediaImage[] = current.artworkSrc
       ? [
@@ -286,45 +336,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         ]
       : [];
 
-    ms.metadata = new MediaMetadata({
+    navigator.mediaSession.metadata = new MediaMetadata({
       title: current.title,
       artist: current.album || "JADSYNTH",
       album: "JADSYNTH",
       artwork,
     });
+  }, [current]);
 
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onNext = () => next();
-    const onPrev = () => prev();
-
-    try {
-      ms.setActionHandler("play", onPlay);
-      ms.setActionHandler("pause", onPause);
-      ms.setActionHandler("nexttrack", onNext);
-      ms.setActionHandler("previoustrack", onPrev);
-    } catch {
-      /* unsupported action handler — ignore */
-    }
-
-    return () => {
-      try {
-        ms.setActionHandler("play", null);
-        ms.setActionHandler("pause", null);
-        ms.setActionHandler("nexttrack", null);
-        ms.setActionHandler("previoustrack", null);
-      } catch {
-        /* ignore */
-      }
-    };
-  }, [current, next, prev]);
-
+  // Mirror the playback state — also re-asserts metadata when playback
+  // starts (iOS sometimes drops it if it was set before any audio played).
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
       return;
     }
     navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
   }, [isPlaying]);
+
+  // Periodically push position state so the lock-screen scrubber works.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
+      return;
+    }
+    const ms = navigator.mediaSession;
+    const id = window.setInterval(() => {
+      const h = howlRef.current;
+      if (!h) return;
+      const dur = h.duration();
+      if (typeof dur !== "number" || dur <= 0) return;
+      const pos = h.seek();
+      const seekTime = typeof pos === "number" ? pos : 0;
+      try {
+        ms.setPositionState({
+          duration: dur,
+          playbackRate: 1,
+          position: Math.max(0, Math.min(dur, seekTime)),
+        });
+      } catch {
+        /* setPositionState may throw if values invalid — ignore */
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
   const setRate = useCallback((r: number) => {
     setRateState(Math.max(0.25, Math.min(2.5, r)));
   }, []);
