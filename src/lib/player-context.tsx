@@ -12,6 +12,12 @@ import { Howl } from "howler";
 import { tracks as allTracks, type Track } from "./tracks";
 import { shuffleTracksArtFirst } from "./shuffle-tracks";
 import { freeBuffersExcept, prepareTrack } from "./scrub-engine";
+import { MobilePlayer } from "./mobile-player";
+
+type AudioPlayer = Howl | MobilePlayer;
+const isMobileViewport = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(max-width: 767px)").matches;
 
 export type ScrubDirection = "none" | "ffwd" | "rewind";
 
@@ -25,7 +31,7 @@ type PlayerState = {
   catalogOpen: boolean;
   scrubDirection: ScrubDirection;
   setScrubDirection: (d: ScrubDirection) => void;
-  howlRef: React.MutableRefObject<Howl | null>;
+  howlRef: React.MutableRefObject<AudioPlayer | null>;
   rateLockRef: React.MutableRefObject<boolean>;
   setIndex: (i: number) => void;
   next: () => void;
@@ -70,7 +76,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     freeBuffersExcept([src]);
   }, [currentIndex, tracks]);
 
-  const howlRef = useRef<Howl | null>(null);
+  const howlRef = useRef<AudioPlayer | null>(null);
+  const mobilePlayerRef = useRef<MobilePlayer | null>(null);
+  const tracksRef = useRef<Track[]>(allTracks);
+  const currentIndexRef = useRef(0);
+  const setIsPlayingRef = useRef<typeof setIsPlaying>(() => {});
   const soundIdRef = useRef<number | null>(null);
   const rateLockRef = useRef(false);
   const rafRef = useRef<number | null>(null);
@@ -126,7 +136,34 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       crossfadePrevRef.current = null;
     }
 
-    const prev = howlRef.current;
+    const isSmallViewport = isMobileViewport();
+
+    // Mobile: reuse a singleton MobilePlayer (single HTMLAudioElement that
+    // stays gesture-primed across all tracks). Just swap the src.
+    if (isSmallViewport) {
+      const newSrc = tracks[currentIndex].src;
+      let player = mobilePlayerRef.current;
+      if (!player) {
+        player = new MobilePlayer({
+          src: newSrc,
+          volume: volumeRef.current,
+          onend: () =>
+            setCurrentIndex((i) => (i + 1) % tracksRef.current.length),
+        });
+        mobilePlayerRef.current = player;
+        howlRef.current = player;
+      } else {
+        player.setSrc(newSrc);
+        player.volume(volumeRef.current);
+      }
+      soundIdRef.current = null;
+      if (isPlaying) {
+        soundIdRef.current = player.play();
+      }
+      return;
+    }
+
+    const prev = howlRef.current as Howl | null;
     const prevId = soundIdRef.current;
 
     const sound = new Howl({
@@ -139,11 +176,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     howlRef.current = sound;
     soundIdRef.current = null;
 
-    const isSmallViewport =
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 767px)").matches;
-
-    if (isPlaying && prev && prev.playing(prevId ?? undefined) && !isSmallViewport) {
+    if (isPlaying && prev && prev.playing(prevId ?? undefined)) {
       crossfadePrevRef.current = prev;
       soundIdRef.current = sound.play();
 
@@ -280,12 +313,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const current = tracks[currentIndex];
 
-  // Stable refs so the action handlers always read the latest values
-  // without ever being re-registered (re-registration causes a brief gap
-  // iOS treats as "no handler set" and disables the corresponding control).
-  const tracksRef = useRef(tracks);
-  const currentIndexRef = useRef(currentIndex);
-  const setIsPlayingRef = useRef(setIsPlaying);
+  // Keep stable refs (declared above) in sync with the latest values so the
+  // media-session handlers can read the current state without ever needing
+  // to re-register.
   useEffect(() => {
     tracksRef.current = tracks;
     currentIndexRef.current = currentIndex;
@@ -322,6 +352,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       crossfadePrevRef.current = null;
     }
     rateLockRef.current = false;
+
+    // Mobile: reuse the singleton MobilePlayer (same HTMLAudioElement
+    // across all tracks) so the gesture priming carries through. New
+    // src + play() within the same handler tick = iOS allows it.
+    if (isMobileViewport()) {
+      let player = mobilePlayerRef.current;
+      if (!player) {
+        player = new MobilePlayer({
+          src: newSrc,
+          volume: volumeRef.current,
+          onend: () =>
+            setCurrentIndex((i) => (i + 1) % tracksRef.current.length),
+        });
+        mobilePlayerRef.current = player;
+      } else {
+        player.setSrc(newSrc);
+        player.volume(volumeRef.current);
+      }
+      howlRef.current = player;
+      soundIdRef.current = player.play();
+
+      skipNextLoadRef.current = true;
+      setCurrentIndex(newIdx);
+      setIsPlayingRef.current(true);
+      return;
+    }
 
     if (howlRef.current) {
       try {

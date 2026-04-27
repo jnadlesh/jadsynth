@@ -1,10 +1,15 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
-import type { Howl } from "howler";
 import {
   attachMediaElement,
   getAnalyser,
   resumeAudio,
 } from "./audio-graph";
+
+// We only need the optional `_sounds[0]._node` field; both Howl and our
+// MobilePlayer expose it.
+export type AudioElementHost = {
+  _sounds?: Array<{ _node?: HTMLAudioElement }>;
+} | unknown;
 
 export { duckOutput } from "./audio-graph";
 
@@ -14,7 +19,7 @@ type Result = {
 };
 
 export function useAudioAnalyser(
-  howlRef: MutableRefObject<Howl | null>,
+  howlRef: MutableRefObject<AudioElementHost | null>,
   currentIndex: number,
   isPlaying: boolean,
 ): Result {
@@ -34,7 +39,7 @@ export function useAudioAnalyser(
 
     const tryConnect = () => {
       if (cancelled) return;
-      const h = howlRef.current as unknown as
+      const h = howlRef.current as
         | { _sounds?: Array<{ _node?: HTMLAudioElement }> }
         | null;
       const node = h?._sounds?.[0]?._node;
