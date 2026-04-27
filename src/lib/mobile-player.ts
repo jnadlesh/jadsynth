@@ -22,10 +22,11 @@ export class MobilePlayer {
   private endHandler?: () => void;
   private soundId = 1;
 
+  private playRetryHandler?: () => void;
+
   constructor(opts: MobilePlayerOptions) {
     this.audio = new Audio();
     this.audio.preload = "auto";
-    this.audio.crossOrigin = "anonymous";
     if (opts.rate != null) this.audio.playbackRate = opts.rate;
     if (opts.volume != null)
       this.audio.volume = Math.max(0, Math.min(1, opts.volume));
@@ -34,16 +35,44 @@ export class MobilePlayer {
       this.audio.addEventListener("ended", this.endHandler);
     }
     this.audio.src = opts.src;
-    this.audio.load();
+  }
+
+  private clearPlayRetry() {
+    if (this.playRetryHandler) {
+      this.audio.removeEventListener("canplay", this.playRetryHandler);
+      this.playRetryHandler = undefined;
+    }
   }
 
   play(_id?: number): number {
-    const promise = this.audio.play();
-    if (promise && typeof promise.catch === "function") {
-      promise.catch(() => {
-        /* autoplay blocked / element not ready — ignore */
-      });
-    }
+    this.clearPlayRetry();
+
+    const tryPlay = () => {
+      const promise = this.audio.play();
+      if (promise && typeof promise.catch === "function") {
+        promise.catch((err: unknown) => {
+          // AbortError: a new src/load interrupted us. Wait for canplay
+          // and retry — the element is already gesture-primed from earlier
+          // taps, so iOS allows the deferred play.
+          const name =
+            err && typeof err === "object" && "name" in err
+              ? (err as { name?: string }).name
+              : undefined;
+          if (name === "AbortError" || name === "NotSupportedError") {
+            this.playRetryHandler = () => {
+              this.clearPlayRetry();
+              this.audio.play().catch(() => {});
+            };
+            this.audio.addEventListener("canplay", this.playRetryHandler, {
+              once: true,
+            });
+          }
+          /* NotAllowedError = autoplay blocked, can't fix without gesture */
+        });
+      }
+    };
+
+    tryPlay();
     return this.soundId;
   }
 
@@ -98,6 +127,7 @@ export class MobilePlayer {
   }
 
   unload(): void {
+    this.clearPlayRetry();
     this.audio.pause();
     if (this.endHandler) {
       this.audio.removeEventListener("ended", this.endHandler);
@@ -105,7 +135,6 @@ export class MobilePlayer {
     }
     try {
       this.audio.removeAttribute("src");
-      this.audio.load();
     } catch {
       /* ignore */
     }
@@ -114,9 +143,11 @@ export class MobilePlayer {
   // Swap the audio source without recreating the underlying element.
   // The element's gesture-primed status persists across tracks.
   setSrc(src: string): void {
-    if (this.audio.src === src) return;
+    if (this.audio.src.endsWith(src)) return;
+    this.clearPlayRetry();
+    // Setting .src triggers the load automatically. Calling .load()
+    // explicitly aborts any in-flight play() promise with AbortError.
     this.audio.src = src;
-    this.audio.load();
   }
 
   setOnEnded(handler: () => void): void {
