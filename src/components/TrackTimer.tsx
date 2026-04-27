@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePlayer } from "~/lib/player-context";
+import { getScrubPosition } from "~/lib/scrub-engine";
 
 function format(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -18,18 +19,36 @@ export function TrackTimer() {
     setDuration(0);
   }, [currentIndex]);
 
+  const scrubbingRef = useRef(false);
+
   useEffect(() => {
-    const id = setInterval(() => {
-      const h = howlRef.current;
-      if (!h) return;
-      const seek = h.seek();
-      if (typeof seek === "number" && Number.isFinite(seek)) {
-        setPosition(seek);
+    let raf = 0;
+    let lastIntervalTick = 0;
+
+    const tick = (now: number) => {
+      const scrubPos = getScrubPosition();
+
+      if (scrubPos !== null) {
+        scrubbingRef.current = true;
+        setPosition(scrubPos);
+      } else if (now - lastIntervalTick >= 200 || scrubbingRef.current) {
+        scrubbingRef.current = false;
+        const h = howlRef.current;
+        if (h) {
+          const seek = h.seek();
+          if (typeof seek === "number" && Number.isFinite(seek)) {
+            setPosition(seek);
+          }
+          const d = h.duration();
+          if (typeof d === "number" && d > 0) setDuration(d);
+        }
+        lastIntervalTick = now;
       }
-      const d = h.duration();
-      if (typeof d === "number" && d > 0) setDuration(d);
-    }, 200);
-    return () => clearInterval(id);
+
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [howlRef]);
 
   const pct = duration > 0 ? Math.min(1, position / duration) : 0;
@@ -48,7 +67,7 @@ export function TrackTimer() {
           className="h-full rounded-full bg-accent/60"
           style={{
             width: `${pct * 100}%`,
-            transition: "width 220ms linear",
+            transition: scrubbingRef.current ? "none" : "width 220ms linear",
           }}
         />
       </div>

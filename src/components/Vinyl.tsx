@@ -10,6 +10,7 @@ import { useIsMobile } from "~/lib/use-media-query";
 import {
   endScrub,
   isScrubReady,
+  setScrubVolume,
   startScrub,
   updateScrub,
 } from "~/lib/scrub-engine";
@@ -28,6 +29,7 @@ export function Vinyl() {
     rateLockRef,
     howlRef,
     setScrubDirection,
+    volume,
   } = usePlayer();
   const isMobile = useIsMobile();
   const rotation = useMotionValue(0);
@@ -82,6 +84,10 @@ export function Vinyl() {
   }, [isPlaying, rotation, setRate, speed, rateLockRef]);
 
   useEffect(() => {
+    setScrubVolume(volume);
+  }, [volume]);
+
+  useEffect(() => {
     if (isMobile) return;
     const el = containerRef.current;
     if (!el) return;
@@ -110,7 +116,7 @@ export function Vinyl() {
 
     if (h) h.pause();
 
-    const ok = startScrub(current.src, initialPos, wasPlaying);
+    const ok = startScrub(current.src, initialPos, wasPlaying, volume);
     if (!ok) {
       if (h && wasPlaying) h.play();
       return;

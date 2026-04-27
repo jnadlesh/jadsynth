@@ -8,9 +8,10 @@
 ## What it is
 
 A single-page music portfolio built around a turntable.
-Drag the record to scrub. Scroll to bend the pitch. Switch tracks from the
-vinyl crate. The atmospheric background reads the FFT of the live audio
-and breathes in time with the music.
+Grab the record and scratch it like a DJ — forward, reverse, variable pitch.
+Scroll to bend the speed. Switch tracks from the vinyl crate. The
+atmospheric background reads the FFT of the live audio and breathes in time
+with the music.
 
 ## Stack
 
@@ -18,14 +19,15 @@ and breathes in time with the music.
 |-------|------|
 | App   | React 19 + TanStack Router (SPA) |
 | Build | Vite 7 |
-| Audio | Howler.js + Web Audio (AnalyserNode, K-weighted LUFS, peak limiter) |
+| Audio | Hybrid Howler.js (streaming playback) + Web Audio AudioBufferSource (sample-precise scratching), shared chain with K-weighted LUFS normalization, peak limiter, and click-killing duck-gain |
 | Motion| Framer Motion + a custom `<canvas>` reactive background |
 | Style | Tailwind 3 + a custom dark palette |
 | Host  | GitHub Pages, custom domain via Cloudflare DNS |
 
 ## Notable bits
 
-- **Real LUFS normalization** — every track gets attenuated to ~-14 LUFS in real time using a K-weighted measurement chain with a true-peak limiter at -1 dBFS. No matter how hot a master is, your eardrums survive.
+- **Real DJ scratching** — when you grab the disc, Howler steps aside and an `AudioBufferSourceNode`-based scrub engine takes over. The current track is decoded into an `AudioBuffer` (and a reversed copy is built once) so backward scrubs play actual audio in reverse, not silence. Drag velocity drives `playbackRate` in real time; direction changes swap the buffer with a tiny crossfade. Release → Howler resumes streaming from the scrubbed position.
+- **Real LUFS normalization** — every track gets attenuated toward −14 LUFS using a K-weighted measurement chain with a true-peak limiter at −1 dBFS and a master trim. Scratch transients are extra-attenuated so you can scrub at any volume without ear damage.
 - **Tape-stop pause** — a quarter-cosine volume fade so pause sounds like a record slowing into silence, not a hard cut.
 - **Crossfade between tracks** — overlapping Howl instances with mirrored sin/cos volume envelopes.
 - **Mood-derived background** — extracts a 3-color palette from each cover via canvas pixel quantization, then synthesizes a particle field whose blob shapes warp on the bass.

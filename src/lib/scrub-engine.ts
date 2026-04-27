@@ -75,6 +75,7 @@ interface Session {
   ctxTimeAtStart: number;
   lastReportedPosition: number;
   duration: number;
+  targetGain: number;
 }
 
 let active: Session | null = null;
@@ -82,6 +83,10 @@ let active: Session | null = null;
 const MIN_RATE = 0.0625;
 const MAX_RATE = 4;
 const RATE_CHANGE_RESTART_THRESHOLD = 0.6;
+// Scrub audio is always attenuated relative to normal playback so sudden
+// scratch transients can't blow out the listener's ears.
+const SCRUB_VOLUME_ATTENUATION = 0.55;
+const MAX_SCRUB_GAIN = 0.7;
 
 function nowPosition(s: Session): number {
   if (!s.source) return s.lastReportedPosition;
@@ -125,10 +130,16 @@ function startSource(s: Session, pos: number, rate: number, dir: 1 | -1) {
   s.lastReportedPosition = pos;
 }
 
+function computeScrubGain(userVolume: number): number {
+  const v = Math.max(0, Math.min(1, userVolume));
+  return Math.min(MAX_SCRUB_GAIN, v * SCRUB_VOLUME_ATTENUATION);
+}
+
 export function startScrub(
   src: string,
   initialPos: number,
   startPlaying: boolean,
+  userVolume = 1,
 ): boolean {
   const cached = bufferCache.get(src);
   if (!cached) return false;
@@ -162,12 +173,14 @@ export function startScrub(
 
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
 
+  const targetGain = computeScrubGain(userVolume);
+
   const gain = ctx.createGain();
   gain.gain.value = 0;
   gain.connect(input);
   // Quick fade-in to avoid pop when joining the chain.
   const t0 = ctx.currentTime;
-  gain.gain.linearRampToValueAtTime(1, t0 + 0.012);
+  gain.gain.linearRampToValueAtTime(targetGain, t0 + 0.015);
 
   active = {
     ctx,
@@ -180,6 +193,7 @@ export function startScrub(
     ctxTimeAtStart: t0,
     lastReportedPosition: initialPos,
     duration: cached.buffer.duration,
+    targetGain,
   };
 
   if (startPlaying) {
@@ -187,6 +201,17 @@ export function startScrub(
   }
 
   return true;
+}
+
+export function setScrubVolume(userVolume: number): void {
+  if (!active) return;
+  const target = computeScrubGain(userVolume);
+  active.targetGain = target;
+  const ctx = active.ctx;
+  const t0 = ctx.currentTime;
+  active.gain.gain.cancelScheduledValues(t0);
+  active.gain.gain.setValueAtTime(active.gain.gain.value, t0);
+  active.gain.gain.linearRampToValueAtTime(target, t0 + 0.05);
 }
 
 export function updateScrub(audioVelocity: number): void {
@@ -239,6 +264,16 @@ export function updateScrub(audioVelocity: number): void {
     active.ctxTimeAtStart = now;
     active.rate = newRate;
   }
+}
+
+export function getScrubPosition(): number | null {
+  if (!active) return null;
+  return clampPos(active, nowPosition(active));
+}
+
+export function getScrubDuration(): number | null {
+  if (!active) return null;
+  return active.duration;
 }
 
 export function endScrub(): number | null {
