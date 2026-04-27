@@ -33,10 +33,17 @@ export function Navbar() {
         <div className="flex items-center justify-center gap-2 text-bone/60 md:gap-4">
           <button
             onClick={prev}
-            className="flex h-10 w-10 items-center justify-center text-base text-bone/70 hover:text-bone md:h-auto md:w-auto md:text-xs md:uppercase md:tracking-widest"
+            className="flex h-10 w-10 items-center justify-center text-bone/70 hover:text-bone md:h-auto md:w-auto md:text-xs md:uppercase md:tracking-widest"
             aria-label="Previous track"
           >
-            <span className="md:hidden">‹</span>
+            <svg
+              className="h-4 w-4 md:hidden"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden
+            >
+              <path d="M6 5h2v14H6zm12.5-.5v15L8 12z" />
+            </svg>
             <span className="hidden md:inline">‹ Prev</span>
           </button>
           <button
@@ -44,7 +51,18 @@ export function Navbar() {
             className="flex h-10 w-10 items-center justify-center rounded-full border border-bone/20 text-bone/80 hover:border-bone md:h-auto md:w-auto md:px-3 md:py-1 md:text-[0.65rem] md:uppercase md:tracking-widest"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
-            <span className="md:hidden text-sm">{isPlaying ? "❚❚" : "▶"}</span>
+            <svg
+              className="h-4 w-4 md:hidden"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden
+            >
+              {isPlaying ? (
+                <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+              ) : (
+                <path d="M8 5v14l11-7z" />
+              )}
+            </svg>
             <span className="hidden md:inline">{isPlaying ? "Pause" : "Play"}</span>
           </button>
           <div className="hidden min-w-[14ch] text-center text-xs uppercase tracking-widest text-bone md:block">
@@ -52,10 +70,17 @@ export function Navbar() {
           </div>
           <button
             onClick={next}
-            className="flex h-10 w-10 items-center justify-center text-base text-bone/70 hover:text-bone md:h-auto md:w-auto md:text-xs md:uppercase md:tracking-widest"
+            className="flex h-10 w-10 items-center justify-center text-bone/70 hover:text-bone md:h-auto md:w-auto md:text-xs md:uppercase md:tracking-widest"
             aria-label="Next track"
           >
-            <span className="md:hidden">›</span>
+            <svg
+              className="h-4 w-4 md:hidden"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden
+            >
+              <path d="M16 5h2v14h-2zM5.5 4.5v15L16 12z" />
+            </svg>
             <span className="hidden md:inline">Next ›</span>
           </button>
           <div className="hidden md:flex">

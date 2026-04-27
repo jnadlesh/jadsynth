@@ -1,6 +1,6 @@
 Copyright (c) 2026 Jonathan Adlesh (JADSYNTH).
 
-This repository contains two distinct kinds of material, each governed
+This repository contains three distinct kinds of material, each governed
 by the terms below.
 
 ================================================================================
@@ -9,8 +9,8 @@ by the terms below.
 
 The source code in this repository (including all TypeScript, JavaScript,
 CSS, HTML, configuration files, and build scripts — but specifically
-EXCLUDING the audio and artwork files described in section 2) is licensed
-under the MIT License:
+EXCLUDING the audio files described in section 2 and the third-party
+artwork described in section 3) is licensed under the MIT License:
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the
@@ -32,15 +32,14 @@ under the MIT License:
   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
-2. MUSICAL WORKS, RECORDINGS, AND ARTWORK — ALL RIGHTS RESERVED
+2. MUSICAL WORKS AND RECORDINGS — ALL RIGHTS RESERVED
 ================================================================================
 
 All audio files (including but not limited to files in `public/audio/`),
-all cover art and visual artwork (including but not limited to files in
-`public/covers/`), all underlying compositions, sound recordings, lyrics,
-performances, mixes, masters, and any derivative works thereof
-(collectively, the "Works") are the exclusive property of Jonathan Adlesh
-(JADSYNTH) and are NOT covered by the MIT license above.
+all underlying compositions, sound recordings, lyrics, performances,
+mixes, masters, and any derivative works thereof (collectively, the
+"Works") are the exclusive property of Jonathan Adlesh (JADSYNTH) and
+are NOT covered by the MIT license above.
 
 ALL RIGHTS RESERVED for the Works. NO LICENSE IS GRANTED. Without prior
 written permission from the copyright holder, you may NOT:
@@ -61,3 +60,17 @@ Streaming the Works through this website (jadsynth.com) for personal
 listening is the only permitted use.
 
 For licensing inquiries, contact the copyright holder.
+
+================================================================================
+3. COVER ARTWORK — THIRD-PARTY RIGHTS
+================================================================================
+
+The cover artwork files in `public/covers/` are NOT the property of the
+copyright holder of this repository. These images were retrieved from
+publicly available sources (SoundCloud track artwork, etc.) and are
+displayed solely as visual identifiers for the corresponding tracks.
+
+All rights to these images remain with their original creators or
+rightsholders. The repository owner makes no copyright claim to them and
+grants no license to them. If you are a rightsholder and want an image
+removed, contact the repository owner and it will be taken down.

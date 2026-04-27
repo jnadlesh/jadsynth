@@ -195,71 +195,94 @@ function RecordLabel({
   album: string;
   accent: string;
 }) {
+  const truncatedTitle = title.length > 26 ? title.slice(0, 25) + "…" : title;
+
   return (
-    <div className="absolute inset-0">
-      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-        <defs>
-          <path
-            id="label-arc-top"
-            d="M 12,50 A 38,38 0 0,1 88,50"
-            fill="none"
-          />
-          <path
-            id="label-arc-bottom"
-            d="M 88,50 A 38,38 0 0,1 12,50"
-            fill="none"
-          />
-        </defs>
-        <text
-          fill="rgba(0,0,0,0.7)"
-          fontSize="4.2"
-          letterSpacing="2.4"
-          fontFamily="ui-monospace, monospace"
-        >
-          <textPath href="#label-arc-top" startOffset="50%" textAnchor="middle">
-            JADSYNTH RECORDS
-          </textPath>
-        </text>
-        <text
-          fill="rgba(0,0,0,0.55)"
-          fontSize="3.4"
-          letterSpacing="2.2"
-          fontFamily="ui-monospace, monospace"
-        >
-          <textPath
-            href="#label-arc-bottom"
-            startOffset="50%"
-            textAnchor="middle"
-          >
-            LONG PLAYING · HIGH FIDELITY
-          </textPath>
-        </text>
-      </svg>
+    <svg
+      viewBox="0 0 100 100"
+      className="absolute inset-0 h-full w-full"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <path id="label-arc-top" d="M 12,50 A 38,38 0 0,1 88,50" fill="none" />
+        <path
+          id="label-arc-bottom"
+          d="M 88,50 A 38,38 0 0,1 12,50"
+          fill="none"
+        />
+      </defs>
 
-      <div className="absolute inset-x-0 top-[28%] flex flex-col items-center text-center">
-        <span
-          className="font-display text-[0.62rem] uppercase tracking-[0.14em] leading-tight text-black/85"
-          style={{ maxWidth: "78%" }}
-        >
-          {title}
-        </span>
-      </div>
+      <text
+        fill="rgba(0,0,0,0.7)"
+        fontSize="4.2"
+        letterSpacing="2.4"
+        fontFamily="ui-monospace, monospace"
+      >
+        <textPath href="#label-arc-top" startOffset="50%" textAnchor="middle">
+          JADSYNTH RECORDS
+        </textPath>
+      </text>
 
-      <div className="absolute inset-x-0 bottom-[30%] flex flex-col items-center text-center">
-        <span className="font-mono text-[0.5rem] uppercase tracking-[0.25em] text-black/60">
-          {album} · {id}
-        </span>
-        <span
-          className="mt-1 inline-block rounded-sm px-1 font-mono text-[0.45rem] uppercase tracking-[0.3em]"
-          style={{
-            color: accent,
-            background: "rgba(0,0,0,0.7)",
-          }}
+      <text
+        fill="rgba(0,0,0,0.55)"
+        fontSize="3.4"
+        letterSpacing="2.2"
+        fontFamily="ui-monospace, monospace"
+      >
+        <textPath
+          href="#label-arc-bottom"
+          startOffset="50%"
+          textAnchor="middle"
         >
-          Side A
-        </span>
-      </div>
-    </div>
+          LONG PLAYING · HIGH FIDELITY
+        </textPath>
+      </text>
+
+      <text
+        x="50"
+        y="32"
+        fill="rgba(0,0,0,0.85)"
+        fontSize="5"
+        letterSpacing="0.3"
+        textAnchor="middle"
+        fontFamily="ui-sans-serif, system-ui, sans-serif"
+        fontWeight="600"
+      >
+        {truncatedTitle.toUpperCase()}
+      </text>
+
+      <text
+        x="50"
+        y="71"
+        fill="rgba(0,0,0,0.55)"
+        fontSize="3.4"
+        letterSpacing="0.7"
+        textAnchor="middle"
+        fontFamily="ui-monospace, monospace"
+      >
+        {album.toUpperCase()} · {id}
+      </text>
+
+      <rect
+        x="42"
+        y="76"
+        width="16"
+        height="6"
+        rx="0.8"
+        fill="rgba(0,0,0,0.78)"
+      />
+      <text
+        x="50"
+        y="80.4"
+        fill={accent}
+        fontSize="3.2"
+        letterSpacing="1.0"
+        textAnchor="middle"
+        fontFamily="ui-monospace, monospace"
+      >
+        SIDE A
+      </text>
+    </svg>
   );
 }
 

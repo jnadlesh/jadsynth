@@ -223,14 +223,20 @@ export function AtmosphericBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isSmallViewport = window.matchMedia("(max-width: 767px)").matches;
+    const dpr = isSmallViewport
+      ? 1
+      : Math.min(window.devicePixelRatio || 1, 1.5);
+    const particleCap = isSmallViewport ? 3 : Infinity;
+    const blurScale = isSmallViewport ? 0.4 : 1;
     let particles: Particle[] = [];
 
     const VELOCITY_SCALE = 14;
 
     const initParticles = (mood: MoodPreset, w: number, h: number) => {
       const minSide = Math.min(w, h);
-      particles = Array.from({ length: mood.particleCount }, (_, i) => {
+      const count = Math.min(mood.particleCount, particleCap);
+      particles = Array.from({ length: count }, (_, i) => {
         const angle = Math.random() * Math.PI * 2;
         const speed =
           mood.driftSpeed * VELOCITY_SCALE * (0.6 + Math.random() * 0.8);
@@ -266,12 +272,20 @@ export function AtmosphericBackground() {
 
     let raf = 0;
     let lastTime = performance.now();
+    let frameSkip = 0;
     let smoothedBass = 0;
     let smoothedMid = 0;
     let smoothedTreble = 0;
     let bassPeak = 0;
 
     const draw = (now: number) => {
+      if (isSmallViewport) {
+        frameSkip = (frameSkip + 1) % 2;
+        if (frameSkip === 0) {
+          raf = requestAnimationFrame(draw);
+          return;
+        }
+      }
       const dt = Math.min(0.05, (now - lastTime) / 1000);
       lastTime = now;
 
@@ -288,7 +302,8 @@ export function AtmosphericBackground() {
 
       if (transitionT >= 1) moodRef.current = toMood;
 
-      canvas.style.filter = visible.filter;
+      const visibleBlur = parseBlur(visible.filter) * blurScale;
+      canvas.style.filter = `blur(${visibleBlur}px)`;
 
       let bassRaw = 0;
       let midRaw = 0;
@@ -344,7 +359,7 @@ export function AtmosphericBackground() {
       const minY = edgeMargin;
       const maxY = h - edgeMargin;
 
-      const VERTICES = 16;
+      const VERTICES = isSmallViewport ? 10 : 16;
 
       for (const p of particles) {
         p.x += p.vx * driftMul * dt;
