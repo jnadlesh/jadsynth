@@ -1,10 +1,38 @@
-Copyright (c) 2026 Jonathan Adlesh (JADSYNTH). All rights reserved.
+Copyright (c) 2026 Jonathan Adlesh (JADSYNTH).
 
 This repository contains two distinct kinds of material, each governed
 by the terms below.
 
 ================================================================================
-1. MUSICAL WORKS, RECORDINGS, AND ARTWORK
+1. SOURCE CODE — MIT LICENSE
+================================================================================
+
+The source code in this repository (including all TypeScript, JavaScript,
+CSS, HTML, configuration files, and build scripts — but specifically
+EXCLUDING the audio and artwork files described in section 2) is licensed
+under the MIT License:
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+2. MUSICAL WORKS, RECORDINGS, AND ARTWORK — ALL RIGHTS RESERVED
 ================================================================================
 
 All audio files (including but not limited to files in `public/audio/`),
@@ -12,10 +40,10 @@ all cover art and visual artwork (including but not limited to files in
 `public/covers/`), all underlying compositions, sound recordings, lyrics,
 performances, mixes, masters, and any derivative works thereof
 (collectively, the "Works") are the exclusive property of Jonathan Adlesh
-(JADSYNTH).
+(JADSYNTH) and are NOT covered by the MIT license above.
 
-NO LICENSE IS GRANTED TO THE WORKS. Without prior written permission from
-the copyright holder, you may NOT:
+ALL RIGHTS RESERVED for the Works. NO LICENSE IS GRANTED. Without prior
+written permission from the copyright holder, you may NOT:
 
   - Copy, download, redistribute, mirror, or rehost the Works in whole
     or in part.
@@ -33,28 +61,3 @@ Streaming the Works through this website (jadsynth.com) for personal
 listening is the only permitted use.
 
 For licensing inquiries, contact the copyright holder.
-
-================================================================================
-2. SOURCE CODE
-================================================================================
-
-All source code in this repository (including but not limited to TypeScript,
-JavaScript, CSS, HTML, configuration, and build scripts) is also Copyright
-(c) 2026 Jonathan Adlesh.
-
-The source code is published publicly for transparency and reference only.
-No license is granted to copy, modify, redistribute, sublicense, or use
-the source code in any other project without prior written permission from
-the copyright holder. Forking on GitHub for the purpose of viewing the
-code is permitted; redistribution or reuse is not.
-
-================================================================================
-3. NO WARRANTY
-================================================================================
-
-THE REPOSITORY AND ITS CONTENTS ARE PROVIDED "AS IS", WITHOUT WARRANTY
-OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM,
-DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
-THE REPOSITORY OR ITS USE.
