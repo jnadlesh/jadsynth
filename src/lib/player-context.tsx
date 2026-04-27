@@ -129,7 +129,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     howlRef.current = sound;
     soundIdRef.current = null;
 
-    if (isPlaying && prev && prev.playing(prevId ?? undefined)) {
+    const isSmallViewport =
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 767px)").matches;
+
+    if (isPlaying && prev && prev.playing(prevId ?? undefined) && !isSmallViewport) {
       crossfadePrevRef.current = prev;
       soundIdRef.current = sound.play();
 
@@ -206,6 +210,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
     } else {
       if (!h.playing(soundIdRef.current ?? undefined)) {
+        return;
+      }
+
+      // On mobile, the rapid h.volume() calls in the fade loop cause
+      // HTMLAudioElement to hiccup / loop the same buffer chunk. Skip the
+      // tape-stop fade entirely on small viewports — just pause cleanly.
+      const isSmallViewport =
+        typeof window !== "undefined" &&
+        window.matchMedia("(max-width: 767px)").matches;
+
+      if (isSmallViewport) {
+        h.pause();
+        h.volume(volumeRef.current);
         return;
       }
 
