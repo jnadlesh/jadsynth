@@ -98,8 +98,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const skipNextLoadRef = useRef(false);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Lock-screen / Bluetooth next-prev pre-loaded the Howl synchronously
+    // inside the gesture window so iOS would actually play it. Skip the
+    // normal load path here so we don't double-create.
+    if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false;
+      return;
+    }
 
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
@@ -270,30 +280,95 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const current = tracks[currentIndex];
 
-  // Stable refs so handlers always call the latest functions without
-  // re-registering (re-registration causes a brief gap iOS doesn't like).
-  const nextRef = useRef(next);
-  const prevRef = useRef(prev);
+  // Stable refs so the action handlers always read the latest values
+  // without ever being re-registered (re-registration causes a brief gap
+  // iOS treats as "no handler set" and disables the corresponding control).
+  const tracksRef = useRef(tracks);
+  const currentIndexRef = useRef(currentIndex);
   const setIsPlayingRef = useRef(setIsPlaying);
   useEffect(() => {
-    nextRef.current = next;
-    prevRef.current = prev;
+    tracksRef.current = tracks;
+    currentIndexRef.current = currentIndex;
     setIsPlayingRef.current = setIsPlaying;
   });
 
-  // Register the action handlers ONCE on mount. They never need to be
-  // re-registered because they call ref.current which always holds the
-  // latest function.
+  // Synchronously swap to the next/prev track inside the user-gesture
+  // window. iOS Safari treats each HTMLAudioElement separately for autoplay
+  // — if we wait for the React effect to create the new Howl, the gesture
+  // has expired and `play()` silently fails on the new element. Doing the
+  // unload/create/play here keeps it within the gesture.
+  const swapTrackImmediate = useCallback((delta: 1 | -1) => {
+    const total = tracksRef.current.length;
+    if (total === 0) return;
+    const cur = currentIndexRef.current;
+    const newIdx = (((cur + delta) % total) + total) % total;
+    const newSrc = tracksRef.current[newIdx]?.src;
+    if (!newSrc) return;
+
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (crossfadeRafRef.current !== null) {
+      cancelAnimationFrame(crossfadeRafRef.current);
+      crossfadeRafRef.current = null;
+    }
+    if (crossfadePrevRef.current) {
+      try {
+        crossfadePrevRef.current.unload();
+      } catch {
+        /* ignore */
+      }
+      crossfadePrevRef.current = null;
+    }
+    rateLockRef.current = false;
+
+    if (howlRef.current) {
+      try {
+        howlRef.current.unload();
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const newHowl = new Howl({
+      src: [newSrc],
+      html5: true,
+      rate: 1,
+      volume: volumeRef.current,
+      onend: () =>
+        setCurrentIndex((i) => (i + 1) % tracksRef.current.length),
+    });
+    howlRef.current = newHowl;
+    soundIdRef.current = newHowl.play();
+
+    skipNextLoadRef.current = true;
+    setCurrentIndex(newIdx);
+    setIsPlayingRef.current(true);
+  }, []);
+
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
       return;
     }
     const ms = navigator.mediaSession;
     try {
-      ms.setActionHandler("play", () => setIsPlayingRef.current(true));
-      ms.setActionHandler("pause", () => setIsPlayingRef.current(false));
-      ms.setActionHandler("nexttrack", () => nextRef.current());
-      ms.setActionHandler("previoustrack", () => prevRef.current());
+      ms.setActionHandler("play", () => {
+        const h = howlRef.current;
+        if (h && !h.playing(soundIdRef.current ?? undefined)) {
+          h.play(soundIdRef.current ?? undefined);
+        }
+        setIsPlayingRef.current(true);
+      });
+      ms.setActionHandler("pause", () => {
+        const h = howlRef.current;
+        if (h && h.playing(soundIdRef.current ?? undefined)) {
+          h.pause();
+        }
+        setIsPlayingRef.current(false);
+      });
+      ms.setActionHandler("nexttrack", () => swapTrackImmediate(1));
+      ms.setActionHandler("previoustrack", () => swapTrackImmediate(-1));
       ms.setActionHandler("seekto", (details) => {
         if (details.seekTime != null) {
           howlRef.current?.seek(details.seekTime);
@@ -317,7 +392,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch {
       /* unsupported action — ignore */
     }
-  }, []);
+  }, [swapTrackImmediate]);
 
   // Update metadata when the track changes.
   useEffect(() => {
@@ -354,10 +429,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [isPlaying]);
 
   // Periodically push position state so the lock-screen scrubber works.
+  // Only runs while playing — avoids unnecessary work on mobile.
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
       return;
     }
+    if (!isPlaying) return;
     const ms = navigator.mediaSession;
     const id = window.setInterval(() => {
       const h = howlRef.current;
@@ -375,9 +452,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       } catch {
         /* setPositionState may throw if values invalid — ignore */
       }
-    }, 1000);
+    }, 2500);
     return () => clearInterval(id);
-  }, []);
+  }, [isPlaying]);
   const setRate = useCallback((r: number) => {
     setRateState(Math.max(0.25, Math.min(2.5, r)));
   }, []);
