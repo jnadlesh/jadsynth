@@ -1,35 +1,44 @@
-Copyright (c) 2026 Jonathan Adlesh (JADSYNTH).
+Copyright (c) 2026 Jonathan Adlesh (JADSYNTH). All rights reserved.
 
 This repository contains three distinct kinds of material, each governed
 by the terms below.
 
 ================================================================================
-1. SOURCE CODE — MIT LICENSE
+1. SOURCE CODE — SOURCE-AVAILABLE, PERMISSION REQUIRED
 ================================================================================
 
 The source code in this repository (including all TypeScript, JavaScript,
 CSS, HTML, configuration files, and build scripts — but specifically
 EXCLUDING the audio files described in section 2 and the third-party
-artwork described in section 3) is licensed under the MIT License:
+artwork described in section 3) is made publicly visible for the purposes
+of personal study, code review, and transparency. NO LICENSE TO USE,
+COPY, MODIFY, MERGE, PUBLISH, DISTRIBUTE, SUBLICENSE, OR SELL the source
+code or any portion of it is granted by this publication.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the
-  "Software"), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
+You may:
+  - View and read the source in this repository.
+  - Fork the repository on GitHub solely as required by the GitHub
+    platform to view, watch, or reference it. Such a fork must not be
+    used to host, deploy, redistribute, or build upon the code without
+    prior written permission.
 
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
+You may NOT, without prior written permission from the copyright holder:
+  - Copy any portion of the source code into another project, whether
+    commercial, non-commercial, open source, closed source, internal,
+    educational, AI training corpus, or otherwise.
+  - Modify, adapt, translate, or create derivative works from the source
+    code.
+  - Redistribute, sublicense, sell, or otherwise convey the source code
+    or any derivative work to any third party.
+  - Deploy or host the source code (or any substantial portion of it) on
+    any domain, server, or service other than the official jadsynth.com
+    site operated by the copyright holder.
+  - Use the source code as a template, scaffold, or starting point for
+    your own project.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Permission, if granted, will be granted in writing and may include
+specific terms and attribution requirements. To request permission,
+contact the copyright holder.
 
 ================================================================================
 2. MUSICAL WORKS AND RECORDINGS — ALL RIGHTS RESERVED
@@ -38,8 +47,7 @@ artwork described in section 3) is licensed under the MIT License:
 All audio files (including but not limited to files in `public/audio/`),
 all underlying compositions, sound recordings, lyrics, performances,
 mixes, masters, and any derivative works thereof (collectively, the
-"Works") are the exclusive property of Jonathan Adlesh (JADSYNTH) and
-are NOT covered by the MIT license above.
+"Works") are the exclusive property of Jonathan Adlesh (JADSYNTH).
 
 ALL RIGHTS RESERVED for the Works. NO LICENSE IS GRANTED. Without prior
 written permission from the copyright holder, you may NOT:
@@ -74,3 +82,14 @@ All rights to these images remain with their original creators or
 rightsholders. The repository owner makes no copyright claim to them and
 grants no license to them. If you are a rightsholder and want an image
 removed, contact the repository owner and it will be taken down.
+
+================================================================================
+4. NO WARRANTY
+================================================================================
+
+THE REPOSITORY AND ITS CONTENTS ARE PROVIDED "AS IS", WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
+THE REPOSITORY OR ITS USE.

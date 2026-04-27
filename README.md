@@ -55,7 +55,7 @@ Open <http://localhost:5173>.
 
 ## License
 
-- **Code** — MIT. Fork it, build your own portfolio, no problem.
+- **Code** — Source-available, all rights reserved. The code is here for you to read and learn from, not to copy. If you want to use any part of it in your own project, reach out and ask.
 - **Music** — All rights reserved. Don't sample, redistribute, train models on, or otherwise use the audio in `public/audio/`. If you want to license a track, reach out.
 - **Cover art** — Sourced from SoundCloud, rights belong to the original creators.
 
